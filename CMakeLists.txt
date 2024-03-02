@@ -1,4 +1,4 @@
-cmake_minimum_required(3.2.2)
+cmake_minimum_required(VERSION 3.22)
 
 project(chip8 VERSION 0.0.0 LANGUAGES CXX)
 
@@ -13,3 +13,5 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     -Wfloat-equal -Weffc++ -Wold-style-cast -Wformat=2 -Wvla
   )
 endif()
+
+add_subdirectory(src)

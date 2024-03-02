@@ -1,0 +1,4 @@
+add_subdirectory(chip8)
+add_executable(emulator boot.cpp)
+target_include_directories(emulator PRIVATE ${CMAKE_SOURCE_DIR}/includes/chip8/)
+target_link_libraries(emulator PUBLIC chip8)
