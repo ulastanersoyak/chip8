@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../instr/instr.hpp"
 #include "config.hpp"
 #include <array>
 #include <cstdint>
@@ -19,4 +20,5 @@ struct chip8 {
 
 public:
   chip8();
+  instr fetch();
 };

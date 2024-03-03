@@ -9,8 +9,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
   add_compile_options(
-    -Wall -Wextra -Wpedantic -Werror -Wunused -Wuninitialized -Wshadow -Wconversion -Wsign-conversion 
-    -Wfloat-equal -Weffc++ -Wold-style-cast -Wformat=2 -Wvla
+    -Wall -Wextra -Wpedantic -Werror -Wunused -Wuninitialized -Wshadow -Wconversion 
+    -Wsign-conversion -Wfloat-equal -Weffc++ -Wold-style-cast -Wformat=2 -Wvla -g
   )
 endif()
 
