@@ -1,5 +1,7 @@
 #include "display.hpp"
-#include "../chip8/config.hpp"
+#include "config.hpp"
+
+#include <SDL2/SDL.h>
 
 #include <array>
 #include <cstdint>
@@ -7,14 +9,25 @@
 
 display::display() noexcept
     : pixels{std::make_unique<
-          std::array<std::array<std::uint8_t, DISPLAY_X>, DISPLAY_Y>>()} {}
+          std::array<std::array<std::uint8_t, DISPLAY_X>, DISPLAY_Y>>()},
+      window{SDL_CreateWindow("SDL_RenderClear", SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED, 10, 10, 0)},
+      renderer{SDL_CreateRenderer(window.get(), -1, 0)} {}
 
-[[nodiscard]] std::uint8_t display::get_pixel(const pos &pos) {
+[[nodiscard]] SDL_Window *display::get_window() const noexcept {
+  return this->window.get();
+}
+
+[[nodiscard]] SDL_Renderer *display::get_renderer() const noexcept {
+  return this->renderer.get();
+}
+
+[[nodiscard]] std::uint8_t display::get_pixel(const pos &pos) const {
   return this->pixels->at(pos.x).at(pos.y);
 }
 
 void display::flip_pixel(const pos &pos) {
-  this->pixels->at(pos.x).at(pos.y) = !this->pixels->at(pos.x).at(pos.y);
+  this->pixels->at(pos.x).at(pos.y) = this->pixels->at(pos.x).at(pos.y) ? 0 : 1;
 }
 
 void display::set_pixel(const pos &pos) {

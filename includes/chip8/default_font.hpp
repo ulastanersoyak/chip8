@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdint>
 
-static constexpr std::array<std::array<uint8_t, 5>, 16> default_font{{
+inline constexpr std::array<std::array<uint8_t, 5>, 16> default_font{{
     {0xF0, 0x90, 0x90, 0x90, 0xF0}, // 0
     {0x20, 0x60, 0x20, 0x20, 0x70}, // 1
     {0xF0, 0x10, 0xF0, 0x80, 0xF0}, // 2

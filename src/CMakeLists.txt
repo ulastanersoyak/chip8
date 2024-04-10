@@ -1,5 +1,5 @@
 add_subdirectory(chip8)
 add_subdirectory(display)
 add_executable(emulator boot.cpp)
-target_include_directories(emulator PRIVATE ${CMAKE_SOURCE_DIR}/includes/chip8/)
+target_include_directories(emulator PRIVATE ${CMAKE_SOURCE_DIR}/includes/chip8/ ${CMAKE_SOURCE_DIR}/includes/display/)
 target_link_libraries(emulator PUBLIC chip8 display SDL2main SDL2)
