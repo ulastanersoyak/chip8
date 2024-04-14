@@ -1,4 +1,5 @@
 #include "chip8.hpp"
+#include "config.hpp"
 #include "default_font.hpp"
 #include "display.hpp"
 
@@ -9,8 +10,8 @@
 chip8::chip8() noexcept
     : mem{std::make_unique<std::array<std::uint8_t, MEM_SIZE>>()},
       disp{std::make_unique<display>()},
-      gpr{std::make_unique<std::array<std::uint8_t, 16>>()}, instr_ptr{0},
-      idx_reg{0}, stack_ptr{0}, delay_timer{0}, sound_timer{0} {
+      gpr{std::make_unique<std::array<std::uint8_t, REGISTER_COUNT>>()},
+      instr_ptr{0}, idx_reg{0}, stack_ptr{0}, delay_timer{0}, sound_timer{0} {
   for (std::size_t i = 0; i < default_font.size(); i++) {
     std::copy_n(default_font[i].begin(), default_font[i].size(),
                 mem->begin() + 0x50 + (i * default_font[i].size()));

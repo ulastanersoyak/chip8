@@ -11,11 +11,15 @@
 
 class display final {
   struct window_destructor final {
-    void operator()(SDL_Window *w) noexcept { SDL_DestroyWindow(w); }
+    void operator()(SDL_Window *window_) noexcept {
+      SDL_DestroyWindow(window_);
+    }
   };
 
   struct renderer_destructor final {
-    void operator()(SDL_Renderer *r) noexcept { SDL_DestroyRenderer(r); }
+    void operator()(SDL_Renderer *renderer_) noexcept {
+      SDL_DestroyRenderer(renderer_);
+    }
   };
 
   std::unique_ptr<std::array<std::array<std::uint8_t, DISPLAY_X>, DISPLAY_Y>>

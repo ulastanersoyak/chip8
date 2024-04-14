@@ -11,7 +11,7 @@
 class chip8 final {
   std::unique_ptr<std::array<std::uint8_t, MEM_SIZE>> mem;
   std::unique_ptr<display> disp;
-  std::unique_ptr<std::array<std::uint8_t, 16>> gpr;
+  std::unique_ptr<std::array<std::uint8_t, REGISTER_COUNT>> gpr;
   std::uint16_t instr_ptr;
   std::uint16_t idx_reg;
   std::uint16_t stack_ptr;

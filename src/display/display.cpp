@@ -11,7 +11,8 @@ display::display() noexcept
     : pixels{std::make_unique<
           std::array<std::array<std::uint8_t, DISPLAY_X>, DISPLAY_Y>>()},
       window{SDL_CreateWindow("SDL_RenderClear", SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, 10, 10, 0)},
+                              SDL_WINDOWPOS_CENTERED, DISPLAY_X * UPSCALE,
+                              DISPLAY_Y * UPSCALE, 0)},
       renderer{SDL_CreateRenderer(window.get(), -1, 0)} {}
 
 [[nodiscard]] SDL_Window *display::get_window() const noexcept {
@@ -27,7 +28,8 @@ display::display() noexcept
 }
 
 void display::flip_pixel(const pos &pos) {
-  this->pixels->at(pos.x).at(pos.y) = this->pixels->at(pos.x).at(pos.y) ? 0 : 1;
+  this->pixels->at(pos.x).at(pos.y) =
+      static_cast<bool>(this->pixels->at(pos.x).at(pos.y)) ? 0 : 1;
 }
 
 void display::set_pixel(const pos &pos) {
