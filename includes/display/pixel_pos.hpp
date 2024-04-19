@@ -1,10 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#define BLACK 0, 0, 0, 255
-#define WHITE 255, 255, 255, 255
 
 struct pos final {
-  std::uint8_t x{0};
-  std::uint8_t y{0};
+  std::uint16_t x{0};
+  std::uint16_t y{0};
 };

@@ -22,6 +22,13 @@ class display final {
     }
   };
 
+  void print_pixel(const SDL_Rect &rect, std::uint8_t pixel) const noexcept;
+
+  [[nodiscard]] static SDL_Rect create_rect(const pos &pos) noexcept {
+    return SDL_Rect{
+        .x = pos.x, .y = pos.y, .w = PIXEL_WIDTH, .h = PIXEL_HEIGHT};
+  }
+
   std::unique_ptr<std::array<std::array<std::uint8_t, DISPLAY_X>, DISPLAY_Y>>
       pixels;
   std::unique_ptr<SDL_Window, window_destructor> window;
@@ -37,3 +44,4 @@ public:
   void unset_pixel(const pos &pos);
   void clear_window() noexcept;
 };
+;
