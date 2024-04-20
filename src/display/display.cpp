@@ -4,10 +4,8 @@
 #include <SDL2/SDL.h>
 
 #include <array>
-#include <chrono>
 #include <cstdint>
 #include <memory>
-#include <thread>
 
 display::display() noexcept
     : pixels{std::make_unique<
@@ -31,25 +29,26 @@ display::display() noexcept
 
 void display::flip_pixel(const pos &pos) {
   this->pixels->at(pos.x).at(pos.y) = this->pixels->at(pos.x).at(pos.y) ^ 1U;
-  print_pixel(create_rect({.x = static_cast<uint16_t>(pos.x * UPSCALE),
-                           .y = static_cast<uint16_t>(pos.y * UPSCALE)}),
-              this->pixels->at(pos.x).at(pos.y));
+  draw_to_back_buffer(pos);
 }
 
 void display::set_pixel(const pos &pos) {
   this->pixels->at(pos.x).at(pos.y) = 1;
+  draw_to_back_buffer(pos);
 }
 
 void display::unset_pixel(const pos &pos) {
   this->pixels->at(pos.x).at(pos.y) = 0;
+  draw_to_back_buffer(pos);
 }
 
-void display::print_pixel(const SDL_Rect &rect,
-                          std::uint8_t pixel_state) const noexcept {
-  SDL_SetRenderDrawColor(get_renderer(), COLOUR_MAX * (pixel_state ^ 1U),
-                         COLOUR_MAX * (pixel_state ^ 1U),
-                         COLOUR_MAX * (pixel_state ^ 1U), COLOUR_MAX);
-  SDL_RenderFillRect(get_renderer(), &rect);
-  SDL_RenderPresent(get_renderer());
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+void display::draw_to_back_buffer(const pos &pos) const {
+  SDL_Rect rect = create_rect({.x = static_cast<uint16_t>(pos.x * UPSCALE),
+                               .y = static_cast<uint16_t>(pos.y * UPSCALE)});
+  SDL_SetRenderDrawColor(
+      this->get_renderer(), COLOUR_MAX * this->pixels->at(pos.x).at(pos.y),
+      COLOUR_MAX * this->pixels->at(pos.x).at(pos.y),
+      COLOUR_MAX * this->pixels->at(pos.x).at(pos.y), COLOUR_MAX);
+  SDL_RenderFillRect(this->get_renderer(), &rect);
+  SDL_RenderPresent(this->get_renderer());
 }
