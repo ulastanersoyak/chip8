@@ -10,3 +10,6 @@ inline constexpr std::uint8_t UPSCALE{10};
 inline constexpr std::uint8_t PIXEL_WIDTH{1 * UPSCALE};
 inline constexpr std::uint8_t PIXEL_HEIGHT{1 * UPSCALE};
 inline constexpr std::uint8_t COLOUR_MAX{255};
+inline constexpr std::uint8_t COLOUR_MIN{0};
+inline constexpr std::uint8_t SET{1};
+inline constexpr std::uint8_t UNSET{0};

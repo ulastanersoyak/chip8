@@ -10,9 +10,8 @@
 #include <memory>
 
 template <typename container>
-concept pos_container =
-    std::ranges::range<container> &&
-    std::is_same<typename container::value_type, pos>::value;
+concept pos_container = std::ranges::range<container> &&
+                        std::is_same_v<typename container::value_type, pos>;
 
 class display final {
   struct window_destructor final {
