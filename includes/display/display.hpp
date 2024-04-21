@@ -54,9 +54,15 @@ class display final {
 
 public:
   display() noexcept;
+  ~display() noexcept;
+  display(const display &) = delete;
+  display(display &&) = default;
+  display &operator=(const display &) = delete;
+  display &operator=(display &&) = default;
+
   [[nodiscard]] SDL_Window *get_window() const noexcept;
   [[nodiscard]] SDL_Renderer *get_renderer() const noexcept;
-  [[nodiscard]] std::uint8_t get_pixel(const pos &pos) const;
+  [[nodiscard]] std::uint16_t get_pixel(const pos &pos) const;
   void flip_pixel(const pos &pos);
   void set_pixel(const pos &pos);
   void unset_pixel(const pos &pos);

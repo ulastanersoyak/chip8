@@ -18,10 +18,14 @@ class chip8 final {
   std::uint8_t delay_timer;
   std::uint8_t sound_timer;
 
-  [[nodiscard]] instr decode(uint16_t opcode) noexcept;
+  [[nodiscard]] static instr decode(uint16_t opcode) noexcept;
 
 public:
   chip8() noexcept;
   [[nodiscard]] display *get_display() const noexcept;
   [[nodiscard]] instr fetch() noexcept;
+  void jump(std::uint16_t addr) noexcept;
+  void set_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
+  void add_to_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
+  void set_idx_reg(std::uint16_t val) noexcept;
 };

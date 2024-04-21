@@ -1,19 +1,32 @@
 #include "chip8.hpp"
-#include "pixel_pos.hpp"
 
-#include <SDL2/SDL.h>
-
-#include <array>
-#include <cstdint>
-#include <cstdlib>
+// TODO: 32 byte stack (16/2)
+// TODO: timer
+// TODO: keypad
+// TODO: DXYN
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   chip8 chip{};
-  [[maybe_unused]] std::array<pos, 10> arr;
-  for (std::uint16_t i = 0; i < 10; ++i) {
-    arr[i] = {static_cast<uint16_t>(i + 12), static_cast<uint16_t>(i + 5)};
-  }
+  bool quit = false;
+  SDL_Event event;
+  while (!quit) {
+    auto inst = chip.fetch();
+    if (inst.third_nibble == 0xE) {
+      chip.get_display()->clear_window();
+    } else if (inst.first_nibble == 0x1) {
+      chip.jump(inst.except_first_nibble);
+    } else if (inst.first_nibble == 0x6) {
+      chip.set_gpr(inst.second_nibble, inst.second_byte);
+    } else if (inst.first_nibble == 0x7) {
+      chip.add_to_gpr(inst.second_nibble, inst.second_byte);
+    } else if (inst.first_nibble == 0xA) {
+      chip.set_idx_reg(inst.except_first_nibble);
+    }
 
-  SDL_Quit();
+    SDL_WaitEvent(&event);
+    if (event.type == SDL_QUIT) {
+      quit = true;
+    }
+  }
   return 0;
 }

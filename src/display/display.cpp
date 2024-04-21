@@ -22,6 +22,8 @@ display::display() noexcept
   SDL_RenderPresent(this->get_renderer());
 }
 
+display::~display() noexcept { SDL_Quit(); }
+
 [[nodiscard]] SDL_Window *display::get_window() const noexcept {
   return this->window.get();
 }
@@ -30,7 +32,7 @@ display::display() noexcept
   return this->renderer.get();
 }
 
-[[nodiscard]] std::uint8_t display::get_pixel(const pos &pos) const {
+[[nodiscard]] std::uint16_t display::get_pixel(const pos &pos) const {
   return this->pixels->at(pos.x).at(pos.y);
 }
 
