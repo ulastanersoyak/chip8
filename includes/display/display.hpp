@@ -63,30 +63,19 @@ public:
   [[nodiscard]] SDL_Window *get_window() const noexcept;
   [[nodiscard]] SDL_Renderer *get_renderer() const noexcept;
   [[nodiscard]] std::uint16_t get_pixel(const pos &pos) const;
-  void flip_pixel(const pos &pos);
-  void set_pixel(const pos &pos);
-  void unset_pixel(const pos &pos);
+  void clear_window() noexcept;
 
-  void flip_pixel(const pos_container auto &positions) {
+  [[nodiscard]] bool flip_pixel(const pos &pos);
+  [[nodiscard]] bool flip_pixel(const pos_container auto &positions) {
+    bool flipped_off = false;
     for (const auto &pos : positions) {
       this->pixels->at(pos.x).at(pos.y) =
           this->pixels->at(pos.x).at(pos.y) ^ 1U;
+      if (this->pixels->at(pos.x).at(pos.y) == 0U) {
+        flipped_off = true;
+      }
     }
     this->draw_to_back_buffer(positions);
+    return flipped_off;
   }
-
-  void set_pixel(const pos_container auto &positions) {
-    for (const auto &pos : positions) {
-      this->pixels->at(pos.x).at(pos.y) = 1;
-    }
-    this->draw_to_back_buffer(positions);
-  }
-
-  void unset_pixel(const pos_container auto &positions) {
-    for (const auto &pos : positions) {
-      this->pixels->at(pos.x).at(pos.y) = 0;
-    }
-    this->draw_to_back_buffer(positions);
-  }
-  void clear_window() noexcept;
 };

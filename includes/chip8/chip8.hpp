@@ -22,10 +22,13 @@ class chip8 final {
 
 public:
   chip8() noexcept;
+  [[nodiscard]] bool read_rom(std::string_view rom_name);
   [[nodiscard]] display *get_display() const noexcept;
+  [[nodiscard]] std::uint8_t get_gpr(std::uint8_t idx) const noexcept;
   [[nodiscard]] instr fetch() noexcept;
   void jump(std::uint16_t addr) noexcept;
   void set_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
   void add_to_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
   void set_idx_reg(std::uint16_t val) noexcept;
+  void draw(pos &starting_position, std::uint8_t size) noexcept;
 };

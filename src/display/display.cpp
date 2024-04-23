@@ -36,19 +36,14 @@ display::~display() noexcept { SDL_Quit(); }
   return this->pixels->at(pos.x).at(pos.y);
 }
 
-void display::flip_pixel(const pos &pos) {
+[[nodiscard]] bool display::flip_pixel(const pos &pos) {
+  bool flipped_off = false;
   this->pixels->at(pos.x).at(pos.y) = this->pixels->at(pos.x).at(pos.y) ^ 1U;
+  if (this->pixels->at(pos.x).at(pos.y) == 0U) {
+    flipped_off = true;
+  }
   this->draw_to_back_buffer(pos);
-}
-
-void display::set_pixel(const pos &pos) {
-  this->pixels->at(pos.x).at(pos.y) = SET;
-  this->draw_to_back_buffer(pos);
-}
-
-void display::unset_pixel(const pos &pos) {
-  this->pixels->at(pos.x).at(pos.y) = UNSET;
-  this->draw_to_back_buffer(pos);
+  return flipped_off;
 }
 
 void display::clear_window() noexcept {
