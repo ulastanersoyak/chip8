@@ -47,7 +47,7 @@ class display final {
         .x = pos.x, .y = pos.y, .w = PIXEL_WIDTH, .h = PIXEL_HEIGHT};
   }
 
-  std::unique_ptr<std::array<std::array<std::uint8_t, DISPLAY_X>, DISPLAY_Y>>
+  std::unique_ptr<std::array<std::array<std::uint8_t, DISPLAY_Y>, DISPLAY_X>>
       pixels;
   std::unique_ptr<SDL_Window, window_destructor> window;
   std::unique_ptr<SDL_Renderer, renderer_destructor> renderer;
@@ -78,4 +78,5 @@ public:
     this->draw_to_back_buffer(positions);
     return flipped_off;
   }
+  void refresh_screen() const;
 };

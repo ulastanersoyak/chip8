@@ -5,11 +5,13 @@
 #include "pixel_pos.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <thread>
 #include <vector>
 
 chip8::chip8() noexcept
@@ -86,19 +88,21 @@ void chip8::add_to_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept {
 
 void chip8::set_idx_reg(std::uint16_t val) noexcept { this->idx_reg = val; }
 
-void chip8::draw(pos &starting_position, std::uint8_t size) noexcept {
+void chip8::draw(const pos &starting_position, std::uint8_t size) noexcept {
   (*this->gpr).at(0xF) = 0;
-  for (std::uint8_t idx = 0; idx < size; idx++) {
-    std::uint8_t sprite_data = (*this->mem).at(this->idx_reg + idx);
+  for (std::uint8_t row = 0; row < size; row++) {
+    std::uint8_t sprite_data = (*this->mem).at(this->idx_reg + row);
     std::vector<pos> positions{};
-    for (int i = 0; i < 8; ++i) {
-      bool bit = (sprite_data & (1 << (7 - i))) != 0;
+    for (int column = 0; column < 8; ++column) {
+      bool bit = (sprite_data & (1 << (7 - column))) != 0;
       if (bit) {
-        positions.emplace_back(starting_position.x++, starting_position.y);
+        positions.emplace_back(starting_position.x + column,
+                               starting_position.y + row);
       }
     }
     if (this->get_display()->flip_pixel(positions)) {
       (*this->gpr).at(0xF) = 1;
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }

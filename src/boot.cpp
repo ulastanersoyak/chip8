@@ -23,7 +23,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   SDL_Event event;
   while (!quit) {
     auto inst = chip.fetch();
-    if (inst.third_nibble == 0xE) {
+    if (inst.first_nibble == 0x0) {
       chip.get_display()->clear_window();
     } else if (inst.first_nibble == 0x1) {
       chip.jump(inst.except_first_nibble);
@@ -44,6 +44,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     if (event.type == SDL_QUIT) {
       quit = true;
     }
+    chip.get_display()->refresh_screen();
   }
   return 0;
 }

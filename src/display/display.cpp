@@ -5,12 +5,14 @@
 #include <SDL2/SDL.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <memory>
+#include <thread>
 
 display::display() noexcept
     : pixels{std::make_unique<
-          std::array<std::array<std::uint8_t, DISPLAY_X>, DISPLAY_Y>>()},
+          std::array<std::array<std::uint8_t, DISPLAY_Y>, DISPLAY_X>>()},
       window{SDL_CreateWindow("SDL_RenderClear", SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED, DISPLAY_X * UPSCALE,
                               DISPLAY_Y * UPSCALE, 0)},
@@ -47,7 +49,7 @@ display::~display() noexcept { SDL_Quit(); }
 }
 
 void display::clear_window() noexcept {
-  std::array<pos, DISPLAY_X> pixel_row{};
+  std::array<pos, DISPLAY_Y> pixel_row{};
   for (std::uint16_t row_idx = 0; auto &row : *this->pixels) {
     std::ranges::fill(row, UNSET);
     std::ranges::generate(pixel_row, [col_idx = 0, &row_idx]() mutable {
@@ -67,4 +69,9 @@ void display::draw_to_back_buffer(const pos &pos) const {
       COLOUR_MAX * this->pixels->at(pos.x).at(pos.y), COLOUR_MAX);
   SDL_RenderFillRect(this->get_renderer(), &rect);
   SDL_RenderPresent(this->get_renderer());
+}
+
+void display::refresh_screen() const {
+  SDL_RenderPresent(this->get_renderer());
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }

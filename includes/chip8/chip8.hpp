@@ -30,5 +30,5 @@ public:
   void set_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
   void add_to_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
   void set_idx_reg(std::uint16_t val) noexcept;
-  void draw(pos &starting_position, std::uint8_t size) noexcept;
+  void draw(const pos &starting_position, std::uint8_t size) noexcept;
 };
