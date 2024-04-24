@@ -5,10 +5,9 @@
 #include <SDL2/SDL.h>
 
 #include <algorithm>
-#include <chrono>
 #include <cstdint>
 #include <memory>
-#include <thread>
+#include <vector>
 
 display::display() noexcept
     : pixels{std::make_unique<
@@ -72,6 +71,13 @@ void display::draw_to_back_buffer(const pos &pos) const {
 }
 
 void display::refresh_screen() const {
-  SDL_RenderPresent(this->get_renderer());
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  std::vector<pos> positions{};
+  for (std::size_t col = 0; col < (*this->pixels).size(); col++) {
+    for (std::size_t row = 0; row < (*this->pixels).at(col).size(); row++) {
+      if ((*this->pixels).at(col).at(row) != 0U) {
+        positions.emplace_back(col, row);
+      }
+    }
+  }
+  draw_to_back_buffer(positions);
 }
