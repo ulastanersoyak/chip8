@@ -19,6 +19,11 @@ class chip8 final {
   std::uint8_t sound_timer;
 
   [[nodiscard]] static instr decode(uint16_t opcode) noexcept;
+  void jump(std::uint16_t addr) noexcept;
+  void set_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
+  void add_to_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
+  void set_idx_reg(std::uint16_t val) noexcept;
+  void draw(const pos &starting_position, std::uint8_t size) noexcept;
 
 public:
   chip8() noexcept;
@@ -26,9 +31,5 @@ public:
   [[nodiscard]] display *get_display() const noexcept;
   [[nodiscard]] std::uint8_t get_gpr(std::uint8_t idx) const noexcept;
   [[nodiscard]] instr fetch() noexcept;
-  void jump(std::uint16_t addr) noexcept;
-  void set_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
-  void add_to_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept;
-  void set_idx_reg(std::uint16_t val) noexcept;
-  void draw(const pos &starting_position, std::uint8_t size) noexcept;
+  void execute(const instr &inst);
 };

@@ -106,3 +106,30 @@ void chip8::draw(const pos &starting_position, std::uint8_t size) noexcept {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
+
+void chip8::execute(const instr &inst) {
+  switch (inst.first_nibble) {
+  case 0x0:
+    this->get_display()->clear_window();
+    break;
+  case 0x1:
+    this->jump(inst.except_first_nibble);
+    break;
+  case 0x6:
+    this->set_gpr(inst.second_nibble, inst.second_byte);
+    break;
+  case 0x7:
+    this->add_to_gpr(inst.second_nibble, inst.second_byte);
+    break;
+  case 0xA:
+    this->set_idx_reg(inst.except_first_nibble);
+    break;
+  case 0xD:
+    pos pos = {.x = static_cast<uint16_t>(this->get_gpr(inst.second_nibble) %
+                                          DISPLAY_X),
+               .y = static_cast<uint16_t>(this->get_gpr(inst.third_nibble) %
+                                          DISPLAY_Y)};
+    this->draw(pos, inst.fourth_nibble);
+    break;
+  }
+}
