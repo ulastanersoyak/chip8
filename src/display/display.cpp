@@ -33,20 +33,6 @@ display::~display() noexcept { SDL_Quit(); }
   return this->renderer.get();
 }
 
-[[nodiscard]] std::uint16_t display::get_pixel(const pos &pos) const {
-  return this->pixels->at(pos.x).at(pos.y);
-}
-
-[[nodiscard]] bool display::flip_pixel(const pos &pos) {
-  bool flipped_off = false;
-  this->pixels->at(pos.x).at(pos.y) = this->pixels->at(pos.x).at(pos.y) ^ 1U;
-  if (this->pixels->at(pos.x).at(pos.y) == 0U) {
-    flipped_off = true;
-  }
-  this->draw_to_back_buffer(pos);
-  return flipped_off;
-}
-
 void display::clear_window() noexcept {
   std::array<pos, DISPLAY_Y> pixel_row{};
   for (std::uint16_t row_idx = 0; auto &row : *this->pixels) {

@@ -18,7 +18,8 @@ chip8::chip8() noexcept
     : mem{std::make_unique<std::array<std::uint8_t, MEM_SIZE>>()},
       disp{std::make_unique<display>()},
       gpr{std::make_unique<std::array<std::uint8_t, REGISTER_COUNT>>()},
-      instr_ptr{ROM_OFFSET}, idx_reg{0}, stack_ptr{0}, delay_timer{0},
+      instr_ptr{ROM_OFFSET}, idx_reg{0},
+      stack{std::make_unique<std::vector<std::uint16_t>>()}, delay_timer{0},
       sound_timer{0} {
   for (std::size_t i = 0; i < default_font.size(); i++) {
     std::copy_n(default_font.at(i).begin(), default_font.at(i).size(),
@@ -78,6 +79,16 @@ chip8::chip8() noexcept
 
 void chip8::jump(std::uint16_t addr) noexcept { this->instr_ptr = addr; }
 
+void chip8::call_subroutine(std::uint16_t addr) noexcept {
+  (*this->stack).push_back(this->instr_ptr);
+  this->instr_ptr = addr;
+}
+
+void chip8::ret_subroutine() noexcept {
+  this->instr_ptr = (*this->stack).back();
+  (*this->stack).pop_back();
+}
+
 void chip8::set_gpr(std::uint8_t reg_idx, std::uint8_t val) noexcept {
   (*this->gpr).at(reg_idx) = val;
 }
@@ -94,8 +105,7 @@ void chip8::draw(const pos &starting_position, std::uint8_t size) noexcept {
     std::uint8_t sprite_data = (*this->mem).at(this->idx_reg + row);
     std::vector<pos> positions{};
     for (int column = 0; column < 8; ++column) {
-      bool bit = (sprite_data & (1 << (7 - column))) != 0;
-      if (bit) {
+      if ((sprite_data & (1 << (7 - column))) != 0) {
         positions.emplace_back(starting_position.x + column,
                                starting_position.y + row);
       }
@@ -110,26 +120,78 @@ void chip8::draw(const pos &starting_position, std::uint8_t size) noexcept {
 void chip8::execute(const instr &inst) {
   switch (inst.first_nibble) {
   case 0x0:
-    this->get_display()->clear_window();
+    if (inst.fourth_nibble == 0xE) {
+      this->ret_subroutine();
+    } else {
+      this->get_display()->clear_window();
+    }
     break;
+
   case 0x1:
     this->jump(inst.except_first_nibble);
     break;
+
+  case 0x2:
+    this->call_subroutine(inst.except_first_nibble);
+    break;
+
+  case 0x3:
+    if ((*this->gpr).at(inst.second_nibble) == inst.second_byte) {
+      this->instr_ptr += 2;
+    }
+    break;
+
+  case 0x4:
+    if ((*this->gpr).at(inst.second_nibble) != inst.second_byte) {
+      this->instr_ptr += 2;
+    }
+    break;
+
+  case 0x5:
+    if ((*this->gpr).at(inst.second_nibble) ==
+        (*this->gpr).at(inst.third_nibble)) {
+      this->instr_ptr += 2;
+    }
+    break;
+
   case 0x6:
     this->set_gpr(inst.second_nibble, inst.second_byte);
     break;
+
   case 0x7:
     this->add_to_gpr(inst.second_nibble, inst.second_byte);
     break;
+
+  case 0x8:
+    switch (inst.fourth_nibble) {
+    case 0x1:
+      break;
+    case 0x2:
+      break;
+    case 0x3:
+      break;
+    case 0x4:
+      break;
+    }
+    break;
+
+  case 0x9:
+    if ((*this->gpr).at(inst.second_nibble) !=
+        (*this->gpr).at(inst.third_nibble)) {
+      this->instr_ptr += 2;
+    }
+    break;
+
   case 0xA:
     this->set_idx_reg(inst.except_first_nibble);
     break;
+
   case 0xD:
-    pos pos = {.x = static_cast<uint16_t>(this->get_gpr(inst.second_nibble) %
-                                          DISPLAY_X),
-               .y = static_cast<uint16_t>(this->get_gpr(inst.third_nibble) %
-                                          DISPLAY_Y)};
-    this->draw(pos, inst.fourth_nibble);
+    pos initial_pos = {.x = static_cast<uint16_t>(
+                           this->get_gpr(inst.second_nibble) % DISPLAY_X),
+                       .y = static_cast<uint16_t>(
+                           this->get_gpr(inst.third_nibble) % DISPLAY_Y)};
+    this->draw(initial_pos, inst.fourth_nibble);
     break;
   }
 }

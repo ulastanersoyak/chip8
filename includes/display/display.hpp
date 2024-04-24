@@ -42,7 +42,7 @@ class display final {
     SDL_RenderPresent(this->get_renderer());
   }
 
-  [[nodiscard]] static SDL_Rect create_rect(const pos &pos) noexcept {
+  [[nodiscard]] static inline SDL_Rect create_rect(const pos &pos) noexcept {
     return SDL_Rect{
         .x = pos.x, .y = pos.y, .w = PIXEL_WIDTH, .h = PIXEL_HEIGHT};
   }
@@ -62,10 +62,9 @@ public:
 
   [[nodiscard]] SDL_Window *get_window() const noexcept;
   [[nodiscard]] SDL_Renderer *get_renderer() const noexcept;
-  [[nodiscard]] std::uint16_t get_pixel(const pos &pos) const;
+
   void clear_window() noexcept;
 
-  [[nodiscard]] bool flip_pixel(const pos &pos);
   [[nodiscard]] bool flip_pixel(const pos_container auto &positions) {
     bool flipped_off = false;
     for (const auto &pos : positions) {
