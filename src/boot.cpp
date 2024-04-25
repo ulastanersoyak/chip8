@@ -1,7 +1,6 @@
 #include "chip8.hpp"
 #include <iostream>
 
-// TODO: 32 byte stack (16/2)
 // TODO: timer
 // TODO: keypad
 // TODO: remove 1 millisecond delay

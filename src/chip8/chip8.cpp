@@ -164,13 +164,47 @@ void chip8::execute(const instr &inst) {
 
   case 0x8:
     switch (inst.fourth_nibble) {
+    case 0x0:
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble));
+      break;
+
     case 0x1:
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) |
+                                            this->get_gpr(inst.second_nibble));
       break;
+
     case 0x2:
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) &
+                                            this->get_gpr(inst.second_nibble));
       break;
+
     case 0x3:
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) ^
+                                            this->get_gpr(inst.second_nibble));
       break;
+
     case 0x4:
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) +
+                                            this->get_gpr(inst.second_nibble));
+      break;
+
+    case 0x5:
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.second_nibble) -
+                                            this->get_gpr(inst.third_nibble));
+      break;
+
+    case 0x6:
+      this->set_gpr(0xF, this->get_gpr(inst.third_nibble) & 0x01U);
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) >> 1U);
+      break;
+
+    case 0x7:
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) -
+                                            this->get_gpr(inst.second_nibble));
+      break;
+    case 0xE:
+      this->set_gpr(0xF, this->get_gpr(inst.third_nibble) & 0x80U);
+      this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) << 1U);
       break;
     }
     break;
@@ -183,6 +217,10 @@ void chip8::execute(const instr &inst) {
     break;
 
   case 0xA:
+    this->set_idx_reg(inst.except_first_nibble);
+    break;
+
+  case 0xB:
     this->set_idx_reg(inst.except_first_nibble);
     break;
 
