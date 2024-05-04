@@ -12,10 +12,11 @@
 display::display() noexcept
     : pixels{std::make_unique<
           std::array<std::array<std::uint8_t, DISPLAY_Y>, DISPLAY_X>>()},
-      window{SDL_CreateWindow("SDL_RenderClear", SDL_WINDOWPOS_CENTERED,
+      window{SDL_CreateWindow("chip8", SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED, DISPLAY_X * UPSCALE,
                               DISPLAY_Y * UPSCALE, 0)},
-      renderer{SDL_CreateRenderer(window.get(), -1, 0)} {
+      renderer{
+          SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_PRESENTVSYNC)} {
   SDL_Init(SDL_INIT_VIDEO);
   SDL_SetRenderDrawColor(this->get_renderer(), COLOUR_MIN, COLOUR_MIN,
                          COLOUR_MIN, COLOUR_MAX);
@@ -57,6 +58,9 @@ void display::draw_to_back_buffer(const pos &pos) const {
 }
 
 void display::refresh_screen() const {
+  SDL_SetRenderDrawColor(this->get_renderer(), COLOUR_MIN, COLOUR_MIN,
+                         COLOUR_MIN, COLOUR_MAX);
+  SDL_RenderClear(this->get_renderer());
   std::vector<pos> positions{};
   for (std::size_t col = 0; col < (*this->pixels).size(); col++) {
     for (std::size_t row = 0; row < (*this->pixels).at(col).size(); row++) {

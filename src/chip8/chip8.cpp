@@ -5,22 +5,20 @@
 #include "pixel_pos.hpp"
 
 #include <algorithm>
-#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <thread>
+#include <random>
 #include <vector>
 
 chip8::chip8() noexcept
     : mem{std::make_unique<std::array<std::uint8_t, MEM_SIZE>>()},
       disp{std::make_unique<display>()},
       gpr{std::make_unique<std::array<std::uint8_t, REGISTER_COUNT>>()},
-      instr_ptr{ROM_OFFSET}, idx_reg{0},
-      stack{std::make_unique<std::vector<std::uint16_t>>()}, delay_timer{0},
-      sound_timer{0} {
+      stack{std::make_unique<std::vector<std::uint16_t>>()},
+      instr_ptr{ROM_OFFSET}, idx_reg{0}, delay_timer{0}, sound_timer{0} {
   for (std::size_t i = 0; i < default_font.size(); i++) {
     std::copy_n(default_font.at(i).begin(), default_font.at(i).size(),
                 mem->begin() + FONT_MEMORY_OFFSET +
@@ -33,7 +31,6 @@ chip8::chip8() noexcept
   std::filesystem::path rom_path = std::filesystem::current_path() / rom_file;
   std::ifstream file(rom_path, std::ios::in | std::ios::binary);
   if (!file.is_open()) {
-    std::cout << "failed to open the file: " << rom_name << ".ch8\n";
     return false;
   }
   file.seekg(0, std::ios_base::end);
@@ -43,6 +40,12 @@ chip8::chip8() noexcept
   file.read(reinterpret_cast<char *>(buffer.data()), length);
   std::copy(buffer.begin(), buffer.end(), this->mem->begin() + ROM_OFFSET);
   return true;
+}
+
+[[nodiscard]] std::uint8_t chip8::get_random() noexcept {
+  using std::mt19937;
+  static mt19937 mt_gen{};
+  return mt_gen() & 0xFF;
 }
 
 [[nodiscard]] instr chip8::fetch() noexcept {
@@ -113,7 +116,6 @@ void chip8::draw(const pos &starting_position, std::uint8_t size) noexcept {
     if (this->get_display()->flip_pixel(positions)) {
       (*this->gpr).at(0xF) = 1;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
 
@@ -126,78 +128,63 @@ void chip8::execute(const instr &inst) {
       this->get_display()->clear_window();
     }
     break;
-
   case 0x1:
     this->jump(inst.except_first_nibble);
     break;
-
   case 0x2:
     this->call_subroutine(inst.except_first_nibble);
     break;
-
   case 0x3:
     if ((*this->gpr).at(inst.second_nibble) == inst.second_byte) {
       this->instr_ptr += 2;
     }
     break;
-
   case 0x4:
     if ((*this->gpr).at(inst.second_nibble) != inst.second_byte) {
       this->instr_ptr += 2;
     }
     break;
-
   case 0x5:
     if ((*this->gpr).at(inst.second_nibble) ==
         (*this->gpr).at(inst.third_nibble)) {
       this->instr_ptr += 2;
     }
     break;
-
   case 0x6:
     this->set_gpr(inst.second_nibble, inst.second_byte);
     break;
-
   case 0x7:
     this->add_to_gpr(inst.second_nibble, inst.second_byte);
     break;
-
   case 0x8:
     switch (inst.fourth_nibble) {
     case 0x0:
       this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble));
       break;
-
     case 0x1:
       this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) |
                                             this->get_gpr(inst.second_nibble));
       break;
-
     case 0x2:
       this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) &
                                             this->get_gpr(inst.second_nibble));
       break;
-
     case 0x3:
       this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) ^
                                             this->get_gpr(inst.second_nibble));
       break;
-
     case 0x4:
       this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) +
                                             this->get_gpr(inst.second_nibble));
       break;
-
     case 0x5:
       this->set_gpr(inst.second_nibble, this->get_gpr(inst.second_nibble) -
                                             this->get_gpr(inst.third_nibble));
       break;
-
     case 0x6:
       this->set_gpr(0xF, this->get_gpr(inst.third_nibble) & 0x01U);
       this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) >> 1U);
       break;
-
     case 0x7:
       this->set_gpr(inst.second_nibble, this->get_gpr(inst.third_nibble) -
                                             this->get_gpr(inst.second_nibble));
@@ -208,28 +195,41 @@ void chip8::execute(const instr &inst) {
       break;
     }
     break;
-
   case 0x9:
     if ((*this->gpr).at(inst.second_nibble) !=
         (*this->gpr).at(inst.third_nibble)) {
       this->instr_ptr += 2;
     }
     break;
-
   case 0xA:
     this->set_idx_reg(inst.except_first_nibble);
     break;
-
   case 0xB:
     this->set_idx_reg(inst.except_first_nibble);
     break;
-
-  case 0xD:
-    pos initial_pos = {.x = static_cast<uint16_t>(
-                           this->get_gpr(inst.second_nibble) % DISPLAY_X),
-                       .y = static_cast<uint16_t>(
-                           this->get_gpr(inst.third_nibble) % DISPLAY_Y)};
-    this->draw(initial_pos, inst.fourth_nibble);
+  case 0xC:
+    this->set_gpr(inst.second_nibble, chip8::get_random() & inst.second_byte);
     break;
+  case 0xD:
+    this->draw({.x = static_cast<uint16_t>(this->get_gpr(inst.second_nibble) %
+                                           DISPLAY_X),
+                .y = static_cast<uint16_t>(this->get_gpr(inst.third_nibble) %
+                                           DISPLAY_Y)},
+               inst.fourth_nibble);
+    break;
+  case 0xF:
+    switch (inst.fourth_nibble) {
+    case 0x7:
+      this->set_gpr(inst.second_nibble, this->delay_timer);
+      break;
+    case 0x5:
+      this->delay_timer = this->get_gpr(inst.second_nibble);
+      break;
+    case 0x8:
+      this->sound_timer = this->get_gpr(inst.second_nibble);
+      break;
+    case 0xE:
+      this->set_idx_reg(this->idx_reg + this->get_gpr(inst.second_nibble));
+    }
   }
 }

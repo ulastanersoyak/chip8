@@ -1,18 +1,20 @@
 #include "chip8.hpp"
 #include <iostream>
 
-// TODO: timer
-// TODO: keypad
-// TODO: remove 1 millisecond delay
+// TODO: timer & FX07 FX15 FX18
+// TODO: keypad & EX9E EXA1
+
+// 0x6109
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
   if (argc != 2) {
     std::cout << "usage: " << argv[0] << " <rom_name>\n";
     return EXIT_FAILURE;
   }
-  std::string_view rom_name = argv[1];
   chip8 chip{};
+  std::string_view rom_name = argv[1];
   if (!chip.read_rom(rom_name)) {
+    std::cout << "failed to open the file: " << rom_name << ".ch8\n";
     return EXIT_FAILURE;
   }
   bool quit = false;
