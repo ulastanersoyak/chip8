@@ -1,6 +1,7 @@
 #include "chip8.hpp"
 #include <iostream>
 
+// corax F6 F5 F3 error
 // TODO: timer & FX07 FX15 FX18
 // TODO: keypad & EX9E EXA1
 

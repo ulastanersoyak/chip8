@@ -1,4 +1,6 @@
 #pragma once
+#ifndef DISPLAY_HPP
+#define DISPLAY_HPP
 
 #include "../chip8/config.hpp"
 #include "pixel_pos.hpp"
@@ -97,3 +99,5 @@ public:
   }
   void refresh_screen () const;
 };
+
+#endif // !DISPLAY_HPP

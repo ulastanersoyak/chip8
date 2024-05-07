@@ -1,4 +1,6 @@
 #pragma once
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
 
 #include <cstdint>
 
@@ -14,3 +16,5 @@ inline constexpr std::uint8_t COLOUR_MIN{ 0 };
 inline constexpr std::uint8_t SET{ 1 };
 inline constexpr std::uint8_t UNSET{ 0 };
 inline constexpr std::uint16_t ROM_OFFSET{ 0x200 };
+
+#endif

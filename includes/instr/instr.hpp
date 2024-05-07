@@ -1,4 +1,6 @@
 #pragma once
+#ifndef INSTR_HPP
+#define INSTR_HPP
 
 #include <cstdint>
 
@@ -11,3 +13,4 @@ struct instr
   std::uint8_t second_byte;          // NN
   std::uint16_t except_first_nibble; // NNN
 };
+#endif // !INSTR_HPP

@@ -1,4 +1,6 @@
 #pragma once
+#ifndef DEFAULT_FONT_HPP
+#define DEFAULT_FONT_HPP
 
 #include <array>
 #include <cstdint>
@@ -23,3 +25,5 @@ inline constexpr std::array<std::array<uint8_t, 5>, 16> default_font{ {
     { 0xF0, 0x80, 0xF0, 0x80, 0xF0 }, // E
     { 0xF0, 0x80, 0xF0, 0x80, 0x80 }  // F
 } };
+
+#endif

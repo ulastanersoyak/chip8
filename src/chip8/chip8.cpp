@@ -34,7 +34,7 @@ chip8::chip8 () noexcept
 [[nodiscard]] bool
 chip8::read_rom ([[maybe_unused]] std::string_view rom_name)
 {
-  std::string rom_file = "../../roms/" + std::string{ rom_name } + ".ch8";
+  std::string rom_file = "../../test/" + std::string{ rom_name } + ".ch8";
   std::filesystem::path rom_path = std::filesystem::current_path () / rom_file;
   std::ifstream file (rom_path, std::ios::in | std::ios::binary);
   if (!file.is_open ())
@@ -162,6 +162,36 @@ chip8::draw (const pos &starting_position, std::uint8_t size) noexcept
 }
 
 void
+chip8::decimal_conversion (std::uint8_t num) noexcept
+{
+  std::cout << num << "\nhi";
+  (*this->mem).at (this->idx_reg) = static_cast<std::uint8_t> (num / 100);
+
+  (*this->mem).at (this->idx_reg + 1)
+      = static_cast<std::uint8_t> ((num % 100) / 10);
+
+  (*this->mem).at (this->idx_reg + 2) = num % 10;
+}
+
+void
+chip8::load_sequential (std::uint8_t size) noexcept
+{
+  for (std::uint8_t idx = 0; idx <= size; idx++)
+    {
+      this->set_gpr (idx, (*this->mem).at (this->idx_reg + idx));
+    }
+}
+
+void
+chip8::store_sequential (std::uint8_t size) noexcept
+{
+  for (std::uint8_t idx = 0; idx <= size; idx++)
+    {
+      (*this->mem).at (this->idx_reg + idx) = this->get_gpr (idx);
+    }
+}
+
+void
 chip8::execute (const instr &inst)
 {
   switch (inst.first_nibble)
@@ -283,11 +313,18 @@ chip8::execute (const instr &inst)
     case 0xF:
       switch (inst.fourth_nibble)
         {
-        case 0x7:
-          this->set_gpr (inst.second_nibble, this->delay_timer);
+        case 0x3:
+          this->decimal_conversion (
+              this->get_gpr (inst.second_nibble)); // TODO: fix
           break;
         case 0x5:
-          this->delay_timer = this->get_gpr (inst.second_nibble);
+          this->store_sequential (inst.second_nibble); // TODO: fix
+          break;
+        case 0x6:
+          this->load_sequential (inst.second_nibble); // TODO: fix
+          break;
+        case 0x7:
+          this->set_gpr (inst.second_nibble, this->delay_timer);
           break;
         case 0x8:
           this->sound_timer = this->get_gpr (inst.second_nibble);
