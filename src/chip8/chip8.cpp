@@ -69,7 +69,7 @@ chip8::fetch () noexcept
   return decoded_inst;
 }
 
-[[nodiscard]] instr
+[[nodiscard]] constexpr instr
 chip8::decode (uint16_t opcode) noexcept
 {
   const auto first_nibble = static_cast<std::uint8_t> ((opcode >> 12) & 0x0F);
@@ -100,7 +100,7 @@ chip8::get_gpr (std::uint8_t idx) const noexcept
   return (*this->gpr).at (idx);
 }
 
-void
+constexpr void
 chip8::jump (std::uint16_t addr) noexcept
 {
   this->instr_ptr = addr;
@@ -132,7 +132,7 @@ chip8::add_to_gpr (std::uint8_t reg_idx, std::uint8_t val) noexcept
   (*this->gpr).at (reg_idx) += val;
 }
 
-void
+constexpr void
 chip8::set_idx_reg (std::uint16_t val) noexcept
 {
   this->idx_reg = val;
@@ -164,7 +164,6 @@ chip8::draw (const pos &starting_position, std::uint8_t size) noexcept
 void
 chip8::decimal_conversion (std::uint8_t num) noexcept
 {
-  std::cout << num << "\nhi";
   (*this->mem).at (this->idx_reg) = static_cast<std::uint8_t> (num / 100);
 
   (*this->mem).at (this->idx_reg + 1)
@@ -173,7 +172,7 @@ chip8::decimal_conversion (std::uint8_t num) noexcept
   (*this->mem).at (this->idx_reg + 2) = num % 10;
 }
 
-void
+constexpr void
 chip8::load_sequential (std::uint8_t size) noexcept
 {
   for (std::uint8_t idx = 0; idx <= size; idx++)
@@ -182,7 +181,7 @@ chip8::load_sequential (std::uint8_t size) noexcept
     }
 }
 
-void
+constexpr void
 chip8::store_sequential (std::uint8_t size) noexcept
 {
   for (std::uint8_t idx = 0; idx <= size; idx++)

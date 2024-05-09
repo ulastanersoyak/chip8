@@ -28,19 +28,19 @@ display::display () noexcept
 display::~display () noexcept { SDL_Quit (); }
 
 [[nodiscard]] SDL_Window *
-display::get_window () const noexcept
+display::get_window () const
 {
   return this->window.get ();
 }
 
 [[nodiscard]] SDL_Renderer *
-display::get_renderer () const noexcept
+display::get_renderer () const
 {
   return this->renderer.get ();
 }
 
 void
-display::clear_window () noexcept
+display::clear_window ()
 {
   std::array<pos, DISPLAY_Y> pixel_row{};
   for (std::uint16_t row_idx = 0; auto &row : *this->pixels)

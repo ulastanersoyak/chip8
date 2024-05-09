@@ -76,12 +76,12 @@ public:
   display &operator= (const display &) = delete;
   display &operator= (display &&) = default;
 
-  [[nodiscard]] SDL_Window *get_window () const noexcept;
-  [[nodiscard]] SDL_Renderer *get_renderer () const noexcept;
+  [[nodiscard]] SDL_Window *get_window () const;
+  [[nodiscard]] SDL_Renderer *get_renderer () const;
 
-  void clear_window () noexcept;
+  void clear_window ();
 
-  [[nodiscard]] bool
+  [[nodiscard]] constexpr bool
   flip_pixel (const pos_container auto &positions)
   {
     bool flipped_off = false;

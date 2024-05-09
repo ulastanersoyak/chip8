@@ -5,7 +5,7 @@
 #include <array>
 #include <cstdint>
 
-inline std::uint8_t constexpr FONT_MEMORY_OFFSET{ 0X50 };
+inline constexpr std::uint8_t FONT_MEMORY_OFFSET{ 0X50 };
 
 inline constexpr std::array<std::array<uint8_t, 5>, 16> default_font{ {
     { 0xF0, 0x90, 0x90, 0x90, 0xF0 }, // 0

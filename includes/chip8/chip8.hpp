@@ -22,20 +22,20 @@ class chip8 final
   std::uint8_t delay_timer;
   std::uint8_t sound_timer;
 
-  void jump (std::uint16_t addr) noexcept;
+  constexpr void jump (std::uint16_t addr) noexcept;
   void call_subroutine (std::uint16_t addr) noexcept;
   void ret_subroutine () noexcept;
   void set_gpr (std::uint8_t reg_idx, std::uint8_t val) noexcept;
   void add_to_gpr (std::uint8_t reg_idx, std::uint8_t val) noexcept;
-  void set_idx_reg (std::uint16_t val) noexcept;
+  constexpr void set_idx_reg (std::uint16_t val) noexcept;
   void decimal_conversion (std::uint8_t num) noexcept;
-  void store_sequential (std::uint8_t size) noexcept;
-  void load_sequential (std::uint8_t size) noexcept;
+  constexpr void store_sequential (std::uint8_t size) noexcept;
+  constexpr void load_sequential (std::uint8_t size) noexcept;
   void draw (const pos &starting_position, std::uint8_t size) noexcept;
   [[nodiscard]] static std::uint8_t get_random () noexcept;
 
 public:
-  [[nodiscard]] static instr decode (uint16_t opcode) noexcept;
+  [[nodiscard]] constexpr static instr decode (uint16_t opcode) noexcept;
   chip8 () noexcept;
   [[nodiscard]] bool read_rom (std::string_view rom_name);
   [[nodiscard]] display *get_display () const noexcept;
