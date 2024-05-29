@@ -1,6 +1,6 @@
 #include "chip8.hpp"
 #include <SDL2/SDL_events.h>
-#include <iostream>
+#include <print>
 
 // TODO: timer & FX07 FX15 FX18
 // TODO: keypad & EX9E EXA1
@@ -12,14 +12,14 @@ main ([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 {
   if (argc != 2)
     {
-      std::cout << "usage: " << argv[0] << " <rom_name>\n";
+      std::println ("usage: {} <rom_name>", argv[0]);
       return EXIT_FAILURE;
     }
   chip8 chip{};
   std::string_view rom_name = argv[1];
   if (!chip.read_rom (rom_name))
     {
-      std::cout << "failed to open the file: " << rom_name << ".ch8\n";
+      std::println ("failed to open the file: {}.ch8", rom_name);
       return EXIT_FAILURE;
     }
   bool quit = false;
@@ -35,5 +35,5 @@ main ([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
         }
       chip.get_display ()->refresh_screen ();
     }
-  return 0;
+  return EXIT_SUCCESS;
 }

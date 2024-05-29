@@ -4,6 +4,7 @@
 
 #include <cstdint>
 
+inline constexpr bool IS_TEST = true;
 inline constexpr std::uint16_t MEM_SIZE{ 4 * 1024 };
 inline constexpr std::uint8_t DISPLAY_X{ 64 };
 inline constexpr std::uint8_t DISPLAY_Y{ 32 };

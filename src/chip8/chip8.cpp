@@ -34,7 +34,16 @@ chip8::chip8 () noexcept
 [[nodiscard]] bool
 chip8::read_rom ([[maybe_unused]] std::string_view rom_name)
 {
-  std::string rom_file = "../../test/" + std::string{ rom_name } + ".ch8";
+  std::string rom_file{};
+  if constexpr (IS_TEST)
+    {
+      rom_file = "../../test/" + std::string{ rom_name } + ".ch8";
+    }
+  else
+    {
+      rom_file = "../../roms/" + std::string{ rom_name } + ".ch8";
+    }
+
   std::filesystem::path rom_path = std::filesystem::current_path () / rom_file;
   std::ifstream file (rom_path, std::ios::in | std::ios::binary);
   if (!file.is_open ())
