@@ -1,7 +1,7 @@
 #include "chip8.hpp"
+#include <SDL2/SDL_events.h>
 #include <iostream>
 
-// corax F6 F5 F3 error
 // TODO: timer & FX07 FX15 FX18
 // TODO: keypad & EX9E EXA1
 
@@ -28,7 +28,7 @@ main ([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
     {
       auto inst = chip.fetch ();
       chip.execute (inst);
-      SDL_WaitEvent (&event);
+      SDL_PollEvent (&event);
       if (event.type == SDL_QUIT)
         {
           quit = true;

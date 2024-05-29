@@ -44,8 +44,8 @@ chip8::read_rom ([[maybe_unused]] std::string_view rom_name)
   file.seekg (0, std::ios_base::end);
   auto length = file.tellg ();
   file.seekg (0, std::ios_base::beg);
-  std::vector<std::uint8_t> buffer (static_cast<std::size_t> (length));
-  file.read (reinterpret_cast<char *> (buffer.data ()), length);
+  std::vector<char> buffer (static_cast<std::size_t> (length));
+  file.read ((buffer.data ()), length);
   std::copy (buffer.begin (), buffer.end (), this->mem->begin () + ROM_OFFSET);
   return true;
 }
@@ -63,7 +63,7 @@ chip8::fetch () noexcept
 {
   auto raw_inst = static_cast<std::uint16_t> (
       (*this->mem).at (instr_ptr + 1)
-      | static_cast<std::uint16_t> ((*this->mem).at (instr_ptr) << 8));
+      | static_cast<std::uint16_t> ((*this->mem).at (instr_ptr) << 8U));
   instr decoded_inst = chip8::decode (raw_inst);
   instr_ptr += 2;
   return decoded_inst;
@@ -72,19 +72,22 @@ chip8::fetch () noexcept
 [[nodiscard]] constexpr instr
 chip8::decode (uint16_t opcode) noexcept
 {
-  const auto first_nibble = static_cast<std::uint8_t> ((opcode >> 12) & 0x0F);
-  const auto second_nibble = static_cast<std::uint8_t> ((opcode >> 8) & 0x0F);
-  const auto third_nibble = static_cast<std::uint8_t> ((opcode >> 4) & 0x00F);
-  const auto fourth_nibble = static_cast<std::uint8_t> ((opcode) & 0x000F);
+  const auto first_nibble
+      = static_cast<std::uint8_t> ((opcode >> 12U) & 0x0FU);
+  const auto second_nibble
+      = static_cast<std::uint8_t> ((opcode >> 8U) & 0x0FU);
+  const auto third_nibble
+      = static_cast<std::uint8_t> ((opcode >> 4U) & 0x00FU);
+  const auto fourth_nibble = static_cast<std::uint8_t> ((opcode) & 0x000FU);
   return instr{
     .first_nibble = first_nibble,
     .second_nibble = second_nibble,
     .third_nibble = third_nibble,
     .fourth_nibble = fourth_nibble,
     .second_byte
-    = static_cast<std::uint8_t> (((third_nibble << 4) | fourth_nibble)),
+    = static_cast<std::uint8_t> (((third_nibble << 4U) | fourth_nibble)),
     .except_first_nibble = static_cast<uint16_t> (
-        (second_nibble << 8) | (third_nibble << 4) | fourth_nibble)
+        (second_nibble << 8U) | (third_nibble << 4U) | fourth_nibble)
   };
 }
 
@@ -296,7 +299,7 @@ chip8::execute (const instr &inst)
       this->set_idx_reg (inst.except_first_nibble);
       break;
     case 0xB:
-      this->set_idx_reg (inst.except_first_nibble);
+      this->instr_ptr = inst.except_first_nibble + this->get_gpr (0);
       break;
     case 0xC:
       this->set_gpr (inst.second_nibble,
@@ -313,14 +316,17 @@ chip8::execute (const instr &inst)
       switch (inst.fourth_nibble)
         {
         case 0x3:
-          this->decimal_conversion (
-              this->get_gpr (inst.second_nibble)); // TODO: fix
+          this->decimal_conversion (this->get_gpr (inst.second_nibble));
           break;
         case 0x5:
-          this->store_sequential (inst.second_nibble); // TODO: fix
-          break;
-        case 0x6:
-          this->load_sequential (inst.second_nibble); // TODO: fix
+          if (inst.third_nibble == 0x5)
+            {
+              this->store_sequential (inst.second_nibble);
+            }
+          else
+            {
+              this->load_sequential (inst.second_nibble);
+            }
           break;
         case 0x7:
           this->set_gpr (inst.second_nibble, this->delay_timer);
