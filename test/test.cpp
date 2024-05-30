@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL_events.h>
 
+#include <cstdlib>
 #include <filesystem>
 #include <print>
 #include <vector>
@@ -46,7 +47,7 @@ main ()
           SDL_PollEvent (&event);
           if (event.type == SDL_QUIT)
             {
-              quit = true;
+              return EXIT_SUCCESS;
             }
           if (event.type == SDL_KEYDOWN)
             {

@@ -1,6 +1,7 @@
 #include "chip8.hpp"
 #include "config.hpp"
 #include "default_font.hpp"
+#include "default_keymap.hpp"
 #include "display.hpp"
 #include "pixel_pos.hpp"
 
@@ -89,6 +90,7 @@ chip8::decode (uint16_t opcode) noexcept
       = static_cast<std::uint8_t> ((opcode >> 4U) & 0x00FU);
   const auto fourth_nibble = static_cast<std::uint8_t> ((opcode) & 0x000FU);
   return instr{
+    .full_instr = opcode,
     .first_nibble = first_nibble,
     .second_nibble = second_nibble,
     .third_nibble = third_nibble,
@@ -112,36 +114,10 @@ chip8::get_gpr (std::uint8_t idx) const noexcept
   return (*this->gpr).at (idx);
 }
 
-constexpr void
-chip8::jump (std::uint16_t addr) noexcept
-{
-  this->instr_ptr = addr;
-}
-
-void
-chip8::call_subroutine (std::uint16_t addr) noexcept
-{
-  (*this->stack).push_back (this->instr_ptr);
-  this->instr_ptr = addr;
-}
-
-void
-chip8::ret_subroutine () noexcept
-{
-  this->instr_ptr = (*this->stack).back ();
-  (*this->stack).pop_back ();
-}
-
 void
 chip8::set_gpr (std::uint8_t reg_idx, std::uint8_t val) noexcept
 {
   (*this->gpr).at (reg_idx) = val;
-}
-
-void
-chip8::add_to_gpr (std::uint8_t reg_idx, std::uint8_t val) noexcept
-{
-  (*this->gpr).at (reg_idx) += val;
 }
 
 constexpr void
@@ -150,11 +126,185 @@ chip8::set_idx_reg (std::uint16_t val) noexcept
   this->idx_reg = val;
 }
 
-void
-chip8::draw (const pos &starting_position, std::uint8_t size) noexcept
+constexpr void
+chip8::inst_00E0 () const noexcept
 {
+  this->get_display ()->clear_window ();
+}
+
+constexpr void
+chip8::inst_00EE () noexcept
+{
+  this->instr_ptr = (*this->stack).back ();
+  (*this->stack).pop_back ();
+}
+
+constexpr void
+chip8::inst_1nnn (const instr &inst) noexcept
+{
+  this->instr_ptr = inst.except_first_nibble;
+}
+
+constexpr void
+chip8::inst_2nnn (const instr &inst) noexcept
+{
+  (*this->stack).push_back (this->instr_ptr);
+  this->instr_ptr = inst.except_first_nibble;
+}
+
+constexpr void
+chip8::inst_3xkk (const instr &inst) noexcept
+{
+  if ((*this->gpr).at (inst.second_nibble) == inst.second_byte)
+    {
+      this->instr_ptr += 2;
+    }
+}
+
+constexpr void
+chip8::inst_4xkk (const instr &inst) noexcept
+{
+  if ((*this->gpr).at (inst.second_nibble) != inst.second_byte)
+    {
+      this->instr_ptr += 2;
+    }
+}
+
+constexpr void
+chip8::inst_5xy0 (const instr &inst) noexcept
+{
+  if ((*this->gpr).at (inst.second_nibble)
+      == (*this->gpr).at (inst.third_nibble))
+    {
+      this->instr_ptr += 2;
+    }
+}
+
+constexpr void
+chip8::inst_6xkk (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, inst.second_byte);
+}
+
+constexpr void
+chip8::inst_7xkk (const instr &inst) noexcept
+{
+  (*this->gpr).at (inst.second_nibble) += inst.second_byte;
+}
+
+constexpr void
+chip8::inst_8xy0 (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, this->get_gpr (inst.third_nibble));
+}
+
+constexpr void
+chip8::inst_8xy1 (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, this->get_gpr (inst.third_nibble)
+                                         | this->get_gpr (inst.second_nibble));
+}
+
+constexpr void
+chip8::inst_8xy2 (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, this->get_gpr (inst.third_nibble)
+                                         & this->get_gpr (inst.second_nibble));
+}
+
+constexpr void
+chip8::inst_8xy3 (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, this->get_gpr (inst.third_nibble)
+                                         ^ this->get_gpr (inst.second_nibble));
+}
+
+constexpr void
+chip8::inst_8xy4 (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, this->get_gpr (inst.third_nibble)
+                                         + this->get_gpr (inst.second_nibble));
+  ((this->get_gpr (inst.second_nibble) + this->get_gpr (inst.third_nibble))
+   > 255)
+      ? this->set_gpr (0xF, 1)
+      : this->set_gpr (0xF, 0);
+}
+
+constexpr void
+chip8::inst_8xy5 (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, this->get_gpr (inst.second_nibble)
+                                         - this->get_gpr (inst.third_nibble));
+  (this->get_gpr (inst.second_nibble) > this->get_gpr (inst.third_nibble))
+      ? this->set_gpr (0xF, 1)
+      : this->set_gpr (0xF, 0);
+}
+
+constexpr void
+chip8::inst_8xy6 (const instr &inst) noexcept
+{
+  this->set_gpr (0xF, this->get_gpr (inst.third_nibble) & 0x01U);
+  this->set_gpr (inst.second_nibble, this->get_gpr (inst.third_nibble) >> 1U);
+}
+
+constexpr void
+chip8::inst_8xy7 (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, this->get_gpr (inst.third_nibble)
+                                         - this->get_gpr (inst.second_nibble));
+  (this->get_gpr (inst.third_nibble) > this->get_gpr (inst.second_nibble))
+      ? this->set_gpr (0xF, 1)
+      : this->set_gpr (0xF, 0);
+}
+
+constexpr void
+chip8::inst_8xyE (const instr &inst) noexcept
+{
+  this->set_gpr (0xF, this->get_gpr (inst.third_nibble) & 0x80U);
+  this->set_gpr (
+      inst.second_nibble,
+      static_cast<std::uint8_t> (this->get_gpr (inst.third_nibble) << 1));
+}
+
+constexpr void
+chip8::inst_9xy0 (const instr &inst) noexcept
+{
+  if ((*this->gpr).at (inst.second_nibble)
+      != (*this->gpr).at (inst.third_nibble))
+    {
+      this->instr_ptr += 2;
+    }
+}
+
+constexpr void
+chip8::inst_Annn (const instr &inst) noexcept
+{
+  this->set_idx_reg (inst.except_first_nibble);
+}
+
+constexpr void
+chip8::inst_Bnnn (const instr &inst) noexcept
+{
+  this->instr_ptr = inst.except_first_nibble + this->get_gpr (0);
+}
+
+constexpr void
+chip8::inst_Cxkk (const instr &inst) noexcept
+{
+  this->set_gpr (inst.second_nibble, chip8::get_random () & inst.second_byte);
+}
+
+constexpr void
+chip8::inst_Dxyn (const instr &inst) noexcept
+{
+  pos starting_position = {
+    .x
+    = static_cast<uint16_t> (this->get_gpr (inst.second_nibble) % DISPLAY_X),
+    .y = static_cast<uint16_t> (this->get_gpr (inst.third_nibble) % DISPLAY_Y)
+  };
+
   (*this->gpr).at (0xF) = 0;
-  for (std::uint8_t row = 0; row < size; row++)
+  for (std::uint8_t row = 0; row < inst.fourth_nibble; row++)
     {
       std::uint8_t sprite_data = (*this->mem).at (this->idx_reg + row);
       std::vector<pos> positions{};
@@ -173,20 +323,30 @@ chip8::draw (const pos &starting_position, std::uint8_t size) noexcept
     }
 }
 
-void
-chip8::decimal_conversion (std::uint8_t num) noexcept
+constexpr void
+chip8::inst_Fx33 (const instr &inst) noexcept
 {
+  std::uint8_t num = this->get_gpr (inst.second_nibble);
   (*this->mem).at (this->idx_reg) = static_cast<std::uint8_t> (num / 100);
-
   (*this->mem).at (this->idx_reg + 1)
       = static_cast<std::uint8_t> ((num % 100) / 10);
-
   (*this->mem).at (this->idx_reg + 2) = num % 10;
 }
 
 constexpr void
-chip8::load_sequential (std::uint8_t size) noexcept
+chip8::inst_Fx55 (const instr &inst) noexcept
 {
+  std::uint8_t size = inst.second_nibble;
+  for (std::uint8_t idx = 0; idx <= size; idx++)
+    {
+      (*this->mem).at (this->idx_reg + idx) = this->get_gpr (idx);
+    }
+}
+
+constexpr void
+chip8::inst_Fx65 (const instr &inst) noexcept
+{
+  std::uint8_t size = inst.second_nibble;
   for (std::uint8_t idx = 0; idx <= size; idx++)
     {
       this->set_gpr (idx, (*this->mem).at (this->idx_reg + idx));
@@ -194,158 +354,130 @@ chip8::load_sequential (std::uint8_t size) noexcept
 }
 
 constexpr void
-chip8::store_sequential (std::uint8_t size) noexcept
+chip8::inst_Fx07 (const instr &inst) noexcept
 {
-  for (std::uint8_t idx = 0; idx <= size; idx++)
-    {
-      (*this->mem).at (this->idx_reg + idx) = this->get_gpr (idx);
-    }
+  this->set_gpr (inst.second_nibble, this->delay_timer);
+}
+
+constexpr void
+chip8::inst_Fx18 (const instr &inst) noexcept
+{
+  this->sound_timer = this->get_gpr (inst.second_nibble);
+}
+
+constexpr void
+chip8::inst_Fx1E (const instr &inst) noexcept
+{
+  this->set_idx_reg (this->idx_reg + this->get_gpr (inst.second_nibble));
 }
 
 void
-chip8::execute (const instr &inst)
+chip8::execute (const instr &inst) noexcept
 {
   switch (inst.first_nibble)
     {
     case 0x0:
       if (inst.fourth_nibble == 0xE)
         {
-          this->ret_subroutine ();
+          this->inst_00EE ();
         }
       else
         {
-          this->get_display ()->clear_window ();
+          this->inst_00E0 ();
         }
       break;
     case 0x1:
-      this->jump (inst.except_first_nibble);
+      this->inst_1nnn (inst);
       break;
     case 0x2:
-      this->call_subroutine (inst.except_first_nibble);
+      this->inst_2nnn (inst);
       break;
     case 0x3:
-      if ((*this->gpr).at (inst.second_nibble) == inst.second_byte)
-        {
-          this->instr_ptr += 2;
-        }
+      this->inst_3xkk (inst);
       break;
     case 0x4:
-      if ((*this->gpr).at (inst.second_nibble) != inst.second_byte)
-        {
-          this->instr_ptr += 2;
-        }
+      this->inst_4xkk (inst);
       break;
     case 0x5:
-      if ((*this->gpr).at (inst.second_nibble)
-          == (*this->gpr).at (inst.third_nibble))
-        {
-          this->instr_ptr += 2;
-        }
+      this->inst_5xy0 (inst);
       break;
     case 0x6:
-      this->set_gpr (inst.second_nibble, inst.second_byte);
+      this->inst_6xkk (inst);
       break;
     case 0x7:
-      this->add_to_gpr (inst.second_nibble, inst.second_byte);
+      this->inst_7xkk (inst);
       break;
     case 0x8:
       switch (inst.fourth_nibble)
         {
         case 0x0:
-          this->set_gpr (inst.second_nibble,
-                         this->get_gpr (inst.third_nibble));
+          this->inst_8xy0 (inst);
           break;
         case 0x1:
-          this->set_gpr (inst.second_nibble,
-                         this->get_gpr (inst.third_nibble)
-                             | this->get_gpr (inst.second_nibble));
+          this->inst_8xy1 (inst);
           break;
         case 0x2:
-          this->set_gpr (inst.second_nibble,
-                         this->get_gpr (inst.third_nibble)
-                             & this->get_gpr (inst.second_nibble));
+          this->inst_8xy2 (inst);
           break;
         case 0x3:
-          this->set_gpr (inst.second_nibble,
-                         this->get_gpr (inst.third_nibble)
-                             ^ this->get_gpr (inst.second_nibble));
+          this->inst_8xy3 (inst);
           break;
         case 0x4:
-          this->set_gpr (inst.second_nibble,
-                         this->get_gpr (inst.third_nibble)
-                             + this->get_gpr (inst.second_nibble));
+          this->inst_8xy4 (inst);
           break;
         case 0x5:
-          this->set_gpr (inst.second_nibble,
-                         this->get_gpr (inst.second_nibble)
-                             - this->get_gpr (inst.third_nibble));
+          this->inst_8xy5 (inst);
           break;
         case 0x6:
-          this->set_gpr (0xF, this->get_gpr (inst.third_nibble) & 0x01U);
-          this->set_gpr (inst.second_nibble,
-                         this->get_gpr (inst.third_nibble) >> 1U);
+          this->inst_8xy6 (inst);
           break;
         case 0x7:
-          this->set_gpr (inst.second_nibble,
-                         this->get_gpr (inst.third_nibble)
-                             - this->get_gpr (inst.second_nibble));
+          this->inst_8xy7 (inst);
           break;
         case 0xE:
-          this->set_gpr (0xF, this->get_gpr (inst.third_nibble) & 0x80U);
-          this->set_gpr (inst.second_nibble, this->get_gpr (inst.third_nibble)
-                                                 << 1U);
+          this->inst_8xyE (inst);
           break;
         }
       break;
     case 0x9:
-      if ((*this->gpr).at (inst.second_nibble)
-          != (*this->gpr).at (inst.third_nibble))
-        {
-          this->instr_ptr += 2;
-        }
+      this->inst_9xy0 (inst);
       break;
     case 0xA:
-      this->set_idx_reg (inst.except_first_nibble);
+      this->inst_Annn (inst);
       break;
     case 0xB:
-      this->instr_ptr = inst.except_first_nibble + this->get_gpr (0);
+      this->inst_Bnnn (inst);
       break;
     case 0xC:
-      this->set_gpr (inst.second_nibble,
-                     chip8::get_random () & inst.second_byte);
+      this->inst_Cxkk (inst);
       break;
     case 0xD:
-      this->draw ({ .x = static_cast<uint16_t> (
-                        this->get_gpr (inst.second_nibble) % DISPLAY_X),
-                    .y = static_cast<uint16_t> (
-                        this->get_gpr (inst.third_nibble) % DISPLAY_Y) },
-                  inst.fourth_nibble);
+      this->inst_Dxyn (inst);
       break;
     case 0xF:
       switch (inst.fourth_nibble)
         {
         case 0x3:
-          this->decimal_conversion (this->get_gpr (inst.second_nibble));
+          this->inst_Fx33 (inst);
           break;
         case 0x5:
           if (inst.third_nibble == 0x5)
             {
-              this->store_sequential (inst.second_nibble);
+              this->inst_Fx55 (inst);
             }
           else
             {
-              this->load_sequential (inst.second_nibble);
+              this->inst_Fx65 (inst);
             }
           break;
         case 0x7:
-          this->set_gpr (inst.second_nibble, this->delay_timer);
+          this->inst_Fx07 (inst);
           break;
         case 0x8:
-          this->sound_timer = this->get_gpr (inst.second_nibble);
+          this->inst_Fx18 (inst);
           break;
         case 0xE:
-          this->set_idx_reg (this->idx_reg
-                             + this->get_gpr (inst.second_nibble));
+          this->inst_Fx1E (inst);
         }
     }
 }

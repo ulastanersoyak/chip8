@@ -9,6 +9,7 @@ Checks: "*,
         -modernize-use-trailing-return-type,
         -readability-magic-numbers,
         -cppcoreguidelines-avoid-magic-numbers,
+        -hicpp-signed-bitwise,
         "
 WarningsAsErrors: '1'
 HeaderFilterRegex: ''
